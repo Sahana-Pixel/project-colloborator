@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Collaborator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="min-h-screen flex flex-col bg-primary text-primary">
+    <!-- Navigation Bar -->
+    <nav class="border-b sticky top-0 z-50 bg-secondary border-primary">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-3">
+                <div class="flex items-center space-x-2">
+                    <span class="text-lg font-semibold text-primary">Project Collaborator</span>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#features" class="text-sm text-secondary link-cyan">Features</a>
+                    <a href="#how-it-works" class="text-sm text-secondary link-cyan">How It Works</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="flex-1 flex items-center justify-center py-16 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <!-- Main Heading -->
+            <div class="mb-12">
+                <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight text-primary">
+                    Build Amazing Projects
+                    <span class="text-green-light block">Together</span>
+                </h1>
+                <p class="text-xl max-w-3xl mx-auto leading-relaxed text-secondary">
+                    Connect with developers worldwide to collaborate on innovative projects. 
+                    Share your ideas, find talented collaborators, and bring your vision to life.
+                </p>
+            </div>
+
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 max-w-2xl mx-auto">
+                <div class="text-center p-6 card">
+                    <div class="text-3xl font-bold mb-2 text-green-light">📝</div>
+                    <div class="text-secondary font-medium">Post your project ideas</div>
+                </div>
+                <div class="text-center p-6 card">
+                    <div class="text-3xl font-bold mb-2 text-cyan">🔍</div>
+                    <div class="text-secondary font-medium">Explore projects by tech stack</div>
+                </div>
+                <div class="text-center p-6 card">
+                    <div class="text-3xl font-bold mb-2 text-green-light">👥</div>
+                    <div class="text-secondary font-medium">Find collaborators instantly</div>
+                </div>
+            </div>
+
+
+            <!-- CTA Button -->
+            <div class="mb-16">
+                <a href="/oauth2/authorization/github" 
+                   class="inline-block btn-primary px-8 py-3 text-base">
+                   Get Started with GitHub
+                </a>
+                <p class="mt-4 text-sm text-secondary">Secure authentication · No password required</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-secondary">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-2xl font-semibold text-center mb-8 text-primary">Why Choose Project Collaborator?</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="card text-center">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-tertiary">
+                        <span class="text-xl">🚀</span>
+                    </div>
+                    <h3 class="text-base font-semibold mb-3 text-primary">Showcase Your Work</h3>
+                    <p class="text-sm leading-relaxed text-secondary">
+                        Upload your projects and attract talented developers who share your passion and vision.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="card text-center card-accent-cyan">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-tertiary">
+                        <span class="text-xl text-cyan">🌐</span>
+                    </div>
+                    <h3 class="text-base font-semibold mb-3 text-primary">Discover Innovation</h3>
+                    <p class="text-sm leading-relaxed text-secondary">
+                        Explore cutting-edge projects and find opportunities to contribute to groundbreaking ideas.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="card text-center">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 bg-tertiary">
+                        <span class="text-xl">🤝</span>
+                    </div>
+                    <h3 class="text-base font-semibold mb-3 text-primary">Build Together</h3>
+                    <p class="text-sm leading-relaxed text-secondary">
+                        Connect with like-minded developers and create something extraordinary as a team.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-2xl font-semibold mb-4 text-primary">How It Works</h2>
+            <p class="text-sm mb-8 max-w-2xl mx-auto text-secondary">
+                Join our platform in three simple steps and start collaborating immediately
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="step-number step-number-green mx-auto mb-3">1</div>
+                    <h3 class="text-base font-semibold mb-2 text-primary">Sign In</h3>
+                    <p class="text-sm text-secondary">Quick login with your GitHub account</p>
+                </div>
+                <div class="text-center">
+                    <div class="step-number step-number-cyan mx-auto mb-3">2</div>
+                    <h3 class="text-base font-semibold mb-2 text-primary">Explore & Connect</h3>
+                    <p class="text-sm text-secondary">Browse projects or upload your own</p>
+                </div>
+                <div class="text-center">
+                    <div class="step-number step-number-green mx-auto mb-3">3</div>
+                    <h3 class="text-base font-semibold mb-2 text-primary">Collaborate</h3>
+                    <p class="text-sm text-secondary">Start building amazing projects together</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA Section -->
+    <section class="py-16 bg-gray-800/30">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h2 class="text-2xl font-semibold mb-4 text-primary">Ready to Start Your Journey?</h2>
+            <p class="text-sm mb-6 max-w-2xl mx-auto text-secondary">
+                Join thousands of developers who are already building the future together
+            </p>
+            <a href="/oauth2/authorization/github" 
+               class="inline-block btn-primary px-8 py-3 text-base mb-4">
+               Join with GitHub
+            </a>
+            <p class="text-gray-400 text-sm">Start collaborating in seconds</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t py-6 bg-secondary border-primary">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <div class="flex items-center justify-center space-x-2 mb-2">
+                <span class="text-sm font-semibold text-primary">Project Collaborator</span>
+            </div>
+            <p class="text-xs text-secondary">
+                Building the future, one collaboration at a time
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        function loginWithGitHub() {
+            window.location.href = "/dashboard";
+        }
+    </script>
+</body>
+</html>

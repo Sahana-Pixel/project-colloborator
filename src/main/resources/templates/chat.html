@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Collaborator | Chat</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'github-bg': '#0d1117',
+            'github-secondary': '#161b22',
+            'github-border': '#30363d',
+            'github-text': '#c9d1d9',
+            'github-green': '#238636',
+            'github-green-hover': '#2ea043',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="bg-primary text-primary">
+
+  <!-- ================= NAVBAR ================= -->
+  <nav class="flex justify-between items-center px-4 md:px-6 py-3 sticky top-0 z-40 border-b bg-secondary border-primary">
+    <div class="text-lg md:text-xl font-semibold text-primary">
+      Project Collaborator
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/dashboard" class="text-sm text-secondary hover:text-primary transition-colors">Dashboard</a>
+      <a href="/chat" class="text-sm text-green-primary font-medium">Chat</a>
+      <button id="profileBtn" class="w-9 h-9 rounded-full overflow-hidden border avatar-border">
+        <img id="btnAvatar" th:src="${avatar}" alt="Avatar" class="w-full h-full object-cover">
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= PROFILE MODAL ================= -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex justify-center items-center p-4 modal-overlay">
+    <div class="modal-content w-full max-w-md p-6 relative text-center fade-in">
+      <span id="closeModal" class="absolute top-4 right-4 text-2xl cursor-pointer transition-colors hover:opacity-70 text-secondary">&times;</span>
+      <h2 class="text-xl font-semibold mb-4 text-primary">Profile</h2>
+      <img id="modalAvatar" th:src="${avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border object-cover border-primary">
+      <h3 id="modalUsername" th:text="${username}" class="text-base font-medium mb-4 text-primary">Username</h3>
+      <button onclick="logout()" class="btn-secondary mb-6">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="container mx-auto mt-6 md:mt-8 px-4 md:px-6 max-w-7xl h-[calc(100vh-120px)]">
+    <div class="flex h-full gap-6">
+      <!-- Left Panel: Chat List -->
+      <div class="w-full md:w-1/3 lg:w-1/4 chat-list-panel">
+        <div class="card h-full flex flex-col">
+          <h2 class="text-lg font-semibold mb-4 text-primary">Chats</h2>
+          <div class="chat-list flex-1 overflow-y-auto">
+            <!-- Dummy Chat Items -->
+            <div class="chat-item active" data-chat-id="1">
+              <div class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-tertiary">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary flex-shrink-0">
+                  J
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-semibold text-primary truncate">John Doe</h3>
+                  <p class="text-xs text-secondary truncate">E-Commerce Platform</p>
+                </div>
+              </div>
+            </div>
+            <div class="chat-item" data-chat-id="2">
+              <div class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-tertiary">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary flex-shrink-0">
+                  S
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-semibold text-primary truncate">Sarah Smith</h3>
+                  <p class="text-xs text-secondary truncate">Task Management App</p>
+                </div>
+              </div>
+            </div>
+            <div class="chat-item" data-chat-id="3">
+              <div class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-tertiary">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary flex-shrink-0">
+                  M
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-semibold text-primary truncate">Mike Johnson</h3>
+                  <p class="text-xs text-secondary truncate">Social Media Dashboard</p>
+                </div>
+              </div>
+            </div>
+            <div class="chat-item" data-chat-id="4">
+              <div class="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all hover:bg-tertiary">
+                <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary flex-shrink-0">
+                  E
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="text-sm font-semibold text-primary truncate">Emily Chen</h3>
+                  <p class="text-xs text-secondary truncate">Analytics Dashboard</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Chat Window -->
+      <div class="flex-1 chat-window-panel">
+        <div class="card h-full flex flex-col">
+          <!-- Chat Header -->
+          <div class="chat-header flex items-center justify-between p-4 border-b border-primary flex-shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary" id="chatPartnerAvatar">
+                J
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-primary" id="chatPartnerName">John Doe</h3>
+                <p class="text-xs text-secondary" id="chatProjectTitle">E-Commerce Platform</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Messages Area -->
+          <div class="chat-messages flex-1 overflow-y-auto p-4 space-y-4" id="chatMessages">
+            <!-- Dummy Messages -->
+            <div class="message message-received">
+              <div class="message-content">
+                <p class="message-text">Hello! Thanks for accepting my collaboration request. I'm excited to work on this project!</p>
+                <span class="message-time">10:30 AM</span>
+              </div>
+            </div>
+            <div class="message message-sent">
+              <div class="message-content">
+                <p class="message-text">Hi! Great to have you on board. Let's discuss the project structure and how we can collaborate.</p>
+                <span class="message-time">10:32 AM</span>
+              </div>
+            </div>
+            <div class="message message-received">
+              <div class="message-content">
+                <p class="message-text">Sounds good! I've reviewed the repository. Should we set up a meeting to align on the tech stack?</p>
+                <span class="message-time">10:35 AM</span>
+              </div>
+            </div>
+            <div class="message message-sent">
+              <div class="message-content">
+                <p class="message-text">That's a great idea. How about we schedule a call for tomorrow afternoon?</p>
+                <span class="message-time">10:37 AM</span>
+              </div>
+            </div>
+            <div class="message message-received">
+              <div class="message-content">
+                <p class="message-text">Perfect! I'll send you a calendar invite. Looking forward to it!</p>
+                <span class="message-time">10:40 AM</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input Area -->
+          <div class="chat-input-container p-4 border-t border-primary flex-shrink-0">
+            <div class="flex gap-3">
+              <input type="text" id="chatMessageInput" class="chat-input flex-1" placeholder="Type a message...">
+              <button id="chatSendBtn" class="btn-primary px-6">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const owner = document.getElementById('modalUsername')?.textContent || 'User';
+
+  /* ===================== PROFILE MODAL ===================== */
+  const profileBtn = document.getElementById("profileBtn");
+  const modal = document.getElementById("profileModal");
+  const closeModal = document.getElementById("closeModal");
+
+  if (profileBtn && modal) {
+    profileBtn.onclick = () => {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    };
+  }
+
+  if (closeModal && modal) {
+    closeModal.onclick = () => {
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    };
+  }
+
+  if (modal) {
+    window.onclick = (event) => { 
+      if (event.target === modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+      }
+    };
+  }
+
+  function logout() { 
+    window.location.href = "/logout"; 
+  }
+
+  /* ===================== CHAT LIST SELECTION ===================== */
+  const chatItems = document.querySelectorAll('.chat-item');
+  const chatPartnerName = document.getElementById('chatPartnerName');
+  const chatProjectTitle = document.getElementById('chatProjectTitle');
+  const chatPartnerAvatar = document.getElementById('chatPartnerAvatar');
+
+  // Dummy chat data
+  const chatData = {
+    1: { name: 'John Doe', project: 'E-Commerce Platform', avatar: 'J' },
+    2: { name: 'Sarah Smith', project: 'Task Management App', avatar: 'S' },
+    3: { name: 'Mike Johnson', project: 'Social Media Dashboard', avatar: 'M' },
+    4: { name: 'Emily Chen', project: 'Analytics Dashboard', avatar: 'E' }
+  };
+
+  chatItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Remove active class from all items
+      chatItems.forEach(i => i.classList.remove('active'));
+      // Add active class to clicked item
+      item.classList.add('active');
+      
+      // Update chat header
+      const chatId = item.getAttribute('data-chat-id');
+      const chat = chatData[chatId];
+      if (chat && chatPartnerName && chatProjectTitle && chatPartnerAvatar) {
+        chatPartnerName.textContent = chat.name;
+        chatProjectTitle.textContent = chat.project;
+        chatPartnerAvatar.textContent = chat.avatar;
+      }
+    });
+  });
+
+  /* ===================== CHAT INPUT (Placeholder) ===================== */
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatMessageInput = document.getElementById('chatMessageInput');
+
+  if (chatSendBtn && chatMessageInput) {
+    chatSendBtn.addEventListener('click', () => {
+      const messageText = chatMessageInput.value.trim();
+      if (messageText) {
+        // Placeholder - will be implemented with backend
+        console.log('Message:', messageText);
+        chatMessageInput.value = '';
+      }
+    });
+
+    chatMessageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        chatSendBtn.click();
+      }
+    });
+  }
+
+  // Scroll to bottom of messages on load
+  const messagesContainer = document.getElementById('chatMessages');
+  if (messagesContainer) {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Collaborator | Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'github-bg': '#0d1117',
+            'github-secondary': '#161b22',
+            'github-border': '#30363d',
+            'github-text': '#c9d1d9',
+            'github-green': '#238636',
+            'github-green-hover': '#2ea043',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body class="bg-primary text-primary">
+
+  <!-- ================= NAVBAR ================= -->
+  <nav class="flex justify-between items-center px-4 md:px-6 py-3 sticky top-0 z-40 border-b bg-secondary border-primary">
+    <div class="text-lg md:text-xl font-semibold text-primary">
+      Project Collaborator
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="/chat" class="text-sm text-secondary hover:text-primary transition-colors">Chat</a>
+      <button id="profileBtn" class="w-9 h-9 rounded-full overflow-hidden border avatar-border">
+        <img id="btnAvatar" th:src="${avatar}" alt="Avatar" class="w-full h-full object-cover">
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= PROFILE MODAL ================= -->
+  <div id="profileModal" class="hidden fixed inset-0 z-50 flex justify-center items-center p-4 modal-overlay">
+    <div class="modal-content w-full max-w-md p-6 relative text-center fade-in">
+      <span id="closeModal" class="absolute top-4 right-4 text-2xl cursor-pointer transition-colors hover:opacity-70 text-secondary">&times;</span>
+      <h2 class="text-xl font-semibold mb-4 text-primary">Profile</h2>
+      <img id="modalAvatar" th:src="${avatar}" class="w-20 h-20 rounded-full mx-auto mb-3 border object-cover border-primary">
+      <h3 id="modalUsername" th:text="${username}" class="text-base font-medium mb-4 text-primary">Username</h3>
+      <input type="hidden" id="loggedInUser" th:value="${username}">
+      <button onclick="logout()" class="btn-secondary mb-6">
+        Logout
+      </button>
+
+      <!-- Pending Requests Section -->
+      <h3 class="text-sm font-semibold mt-6 mb-3 text-left text-primary">Collaboration Requests</h3>
+      <div id="requestList" class="bg-subtle p-3 rounded border max-h-64 overflow-y-auto text-left space-y-2 border-subtle">
+        <div class="text-center py-6">
+          <div class="loading">Loading requests...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="container mx-auto mt-6 md:mt-8 px-4 md:px-6 max-w-7xl">
+    <!-- ================= USER PROJECT SUMMARY ================= -->
+    <section class="mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="summary-card">
+          <div class="summary-icon summary-icon-projects">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <p class="summary-label">Total Projects</p>
+            <p class="summary-value" id="totalProjectsCount">0</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon summary-icon-accepted">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <p class="summary-label">Accepted Requests</p>
+            <p class="summary-value" id="acceptedRequestsCount">0</p>
+          </div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-icon summary-icon-pending">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <p class="summary-label">Pending Requests</p>
+            <p class="summary-value" id="pendingRequestsCount">0</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex flex-col lg:flex-row gap-4 lg:gap-6">
+      <!-- Upload Project - Fixed Size with Auto-Expand -->
+      <section class="flex-1 upload-box" id="uploadBox">
+        <h2 class="text-lg font-semibold mb-6 text-primary">Upload Project</h2>
+        <div class="upload-box-content">
+          <div class="input-group">
+            <input id="projectTitle" type="text" placeholder=" " required>
+            <label for="projectTitle">Project Title</label>
+          </div>
+          <div class="input-group">
+            <input id="projectLink" type="text" placeholder=" " required>
+            <label for="projectLink">GitHub Repository Link</label>
+          </div>
+          <div class="input-group">
+            <textarea id="projectDesc" placeholder=" " rows="4" required></textarea>
+            <label for="projectDesc">Project Description</label>
+          </div>
+          <div class="input-group">
+            <div class="tech-stack-selector">
+              <div class="tech-stack-dropdown-wrapper">
+                <button type="button" class="tech-stack-trigger" id="techStackTrigger">
+                  <span class="tech-stack-placeholder">Select tech stacks...</span>
+                  <span class="tech-stack-arrow">▼</span>
+                </button>
+                <div class="tech-stack-dropdown" id="techStackDropdown">
+                  <div class="tech-stack-options" id="techStackOptions">
+                    <div class="tech-stack-option" data-value="Java">Java</div>
+                    <div class="tech-stack-option" data-value="Spring Boot">Spring Boot</div>
+                    <div class="tech-stack-option" data-value="React">React</div>
+                    <div class="tech-stack-option" data-value="Node.js">Node.js</div>
+                    <div class="tech-stack-option" data-value="Python">Python</div>
+                    <div class="tech-stack-option" data-value="JavaScript">JavaScript</div>
+                    <div class="tech-stack-option" data-value="TypeScript">TypeScript</div>
+                    <div class="tech-stack-option" data-value="Vue.js">Vue.js</div>
+                    <div class="tech-stack-option" data-value="Angular">Angular</div>
+                    <div class="tech-stack-option" data-value="MongoDB">MongoDB</div>
+                    <div class="tech-stack-option" data-value="MySQL">MySQL</div>
+                    <div class="tech-stack-option" data-value="PostgreSQL">PostgreSQL</div>
+                    <div class="tech-stack-option" data-value="Redis">Redis</div>
+                    <div class="tech-stack-option" data-value="Docker">Docker</div>
+                    <div class="tech-stack-option" data-value="Kubernetes">Kubernetes</div>
+                    <div class="tech-stack-option" data-value="AWS">AWS</div>
+                    <div class="tech-stack-option" data-value="Azure">Azure</div>
+                    <div class="tech-stack-option" data-value="GCP">GCP</div>
+                    <div class="tech-stack-option" data-value="HTML">HTML</div>
+                    <div class="tech-stack-option" data-value="CSS">CSS</div>
+                    <div class="tech-stack-option" data-value="Tailwind CSS">Tailwind CSS</div>
+                    <div class="tech-stack-option" data-value="Bootstrap">Bootstrap</div>
+                    <div class="tech-stack-option" data-value="Express.js">Express.js</div>
+                    <div class="tech-stack-option" data-value="Django">Django</div>
+                    <div class="tech-stack-option" data-value="Flask">Flask</div>
+                    <div class="tech-stack-option" data-value="FastAPI">FastAPI</div>
+                    <div class="tech-stack-option" data-value="GraphQL">GraphQL</div>
+                    <div class="tech-stack-option" data-value="REST API">REST API</div>
+                    <div class="tech-stack-option" data-value="Git">Git</div>
+                    <div class="tech-stack-option" data-value="GitHub">GitHub</div>
+                    <div class="tech-stack-option" data-value="GitLab">GitLab</div>
+                  </div>
+                </div>
+                <div class="tech-stack-selected-badges" id="techStackBadges"></div>
+              </div>
+              <label for="techStackTrigger"></label>
+            </div>
+            <input type="hidden" id="projectTech" required>
+          </div>
+        </div>
+        <button onclick="uploadProject()" class="w-full btn-primary mt-4">
+          Upload Project
+        </button>
+      </section>
+
+      <!-- My Projects - Fixed Height with Scroll -->
+      <section class="flex-1 projects-list">
+        <div class="projects-list-header">
+          <h2 class="text-lg font-semibold text-primary">My Projects</h2>
+          <span id="myProjectsCount" class="project-count-badge">0</span>
+        </div>
+        <div id="myUploads" class="projects-list-content">
+          <div class="text-center py-8">
+            <div class="loading">Loading your projects...</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Explore Projects -->
+    <section class="mt-8 md:mt-10">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <h2 class="text-xl font-semibold text-primary">Explore Projects</h2>
+        <div class="flex items-center gap-3">
+          <span id="exploreProjectsCount" class="explore-count-badge">0 projects</span>
+        </div>
+      </div>
+      
+      <!-- Search and Filter Controls -->
+      <div class="flex flex-col md:flex-row gap-4 mb-6">
+        <div class="flex-1 search-container">
+          <div class="search-box">
+            <input type="text" id="searchProjects" placeholder="Search by title or description...">
+          </div>
+        </div>
+        <div class="filter-container">
+          <div class="filter-select-wrapper">
+            <button type="button" class="filter-select-trigger" id="filterTechStackTrigger">
+              <span class="filter-select-text">All Tech Stacks</span>
+              <span class="filter-select-arrow">▼</span>
+            </button>
+            <div class="filter-select-dropdown" id="filterTechStackDropdown">
+              <div class="filter-select-options" id="filterTechStackOptions">
+                <div class="filter-select-option" data-value="">All Tech Stacks</div>
+              </div>
+            </div>
+            <input type="hidden" id="filterTechStack" value="">
+          </div>
+        </div>
+      </div>
+      
+      <div id="exploreProjects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="text-center py-8 col-span-full">
+          <div class="loading">Loading projects...</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  const owner = document.getElementById('loggedInUser').value;
+
+  /* ===================== TOAST NOTIFICATIONS ===================== */
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 400px;';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  /* ===================== PROFILE MODAL ===================== */
+  const profileBtn = document.getElementById("profileBtn");
+  const modal = document.getElementById("profileModal");
+  const closeModal = document.getElementById("closeModal");
+
+  profileBtn.onclick = () => {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    fetchRequestsForOwner(); // load requests when modal opens
+  };
+  closeModal.onclick = () => {
+    modal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+  };
+  window.onclick = (event) => { 
+    if (event.target === modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+  }
+  function logout() { window.location.href = "/logout"; }
+
+  /* ===================== TECH STACK SELECTOR ===================== */
+  let techStackState = {
+    selectedTechStacks: [],
+    reset: function() {
+      this.selectedTechStacks = [];
+      const badgesContainer = document.getElementById('techStackBadges');
+      const hiddenInput = document.getElementById('projectTech');
+      const wrapper = badgesContainer?.closest('.tech-stack-dropdown-wrapper');
+      const label = wrapper?.nextElementSibling;
+      
+      if (badgesContainer) badgesContainer.innerHTML = '';
+      if (hiddenInput) hiddenInput.value = '';
+      if (wrapper) {
+        wrapper.classList.remove('has-selection', 'dropdown-open');
+        const dropdown = document.getElementById('techStackDropdown');
+        if (dropdown) dropdown.classList.remove('open');
+      }
+      if (label && wrapper) {
+        const hasSelection = wrapper.classList.contains('has-selection');
+        if (!hasSelection) {
+          label.style.top = '8px';
+          label.style.fontSize = '14px';
+          label.style.color = 'var(--text-muted)';
+        }
+      }
+      
+      // Update option states
+      const options = document.querySelectorAll('.tech-stack-option');
+      options.forEach(option => option.classList.remove('selected'));
+    }
+  };
+  
+  function initializeTechStackSelector() {
+    const trigger = document.getElementById('techStackTrigger');
+    const dropdown = document.getElementById('techStackDropdown');
+    const options = document.querySelectorAll('.tech-stack-option');
+    const badgesContainer = document.getElementById('techStackBadges');
+    const hiddenInput = document.getElementById('projectTech');
+    const wrapper = badgesContainer?.closest('.tech-stack-dropdown-wrapper');
+    const label = wrapper?.nextElementSibling;
+    
+    if (!trigger || !dropdown || !badgesContainer || !hiddenInput) return;
+    
+    function updateTechStackValue() {
+      hiddenInput.value = techStackState.selectedTechStacks.join(',');
+      renderTechStackBadges();
+      updateLabelPosition();
+      updateOptionStates();
+    }
+    
+    function renderTechStackBadges() {
+      badgesContainer.innerHTML = '';
+      techStackState.selectedTechStacks.forEach(tech => {
+        const badge = document.createElement('span');
+        badge.className = 'tech-stack-badge-selected';
+        badge.innerHTML = `${escapeHtml(tech)} <span class="tech-stack-remove" data-tech="${escapeHtml(tech)}">×</span>`;
+        badgesContainer.appendChild(badge);
+      });
+    }
+    
+    function updateOptionStates() {
+      options.forEach(option => {
+        const value = option.getAttribute('data-value');
+        if (techStackState.selectedTechStacks.includes(value)) {
+          option.classList.add('selected');
+        } else {
+          option.classList.remove('selected');
+        }
+      });
+    }
+    
+    function updateLabelPosition() {
+      if (wrapper && label) {
+        if (techStackState.selectedTechStacks.length > 0 || wrapper.classList.contains('dropdown-open')) {
+          wrapper.classList.add('has-selection');
+        } else {
+          wrapper.classList.remove('has-selection');
+        }
+      }
+    }
+    
+    // Toggle dropdown
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = dropdown.classList.contains('open');
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    });
+    
+    function openDropdown() {
+      dropdown.classList.add('open');
+      wrapper.classList.add('dropdown-open');
+      updateLabelPosition();
+      positionDropdown();
+    }
+    
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      wrapper.classList.remove('dropdown-open');
+      updateLabelPosition();
+    }
+    
+    function positionDropdown() {
+      if (!trigger || !dropdown) return;
+      
+      const triggerRect = trigger.getBoundingClientRect();
+      const dropdownHeight = 300; // max-height
+      const spaceBelow = window.innerHeight - triggerRect.bottom;
+      const spaceAbove = triggerRect.top;
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate position
+      let top, bottom, left, width;
+      
+      // Width: match trigger width, but ensure it fits in viewport
+      width = Math.min(triggerRect.width, viewportWidth - 32);
+      
+      // Horizontal position: align with trigger, but keep within viewport
+      left = Math.max(16, Math.min(triggerRect.left, viewportWidth - width - 16));
+      
+      // Vertical position: prefer opening downward, but open upward if not enough space
+      if (spaceBelow >= dropdownHeight || spaceBelow > spaceAbove) {
+        // Open downward
+        top = triggerRect.bottom + 4;
+        bottom = 'auto';
+        // Ensure dropdown doesn't go below viewport
+        const maxTop = window.innerHeight - dropdownHeight - 16;
+        if (top > maxTop) {
+          top = maxTop;
+        }
+      } else {
+        // Open upward
+        bottom = window.innerHeight - triggerRect.top + 4;
+        top = 'auto';
+        // Ensure dropdown doesn't go above viewport
+        const maxBottom = window.innerHeight - dropdownHeight - 16;
+        if (bottom > maxBottom) {
+          bottom = maxBottom;
+          top = 16;
+        }
+      }
+      
+      dropdown.style.top = typeof top === 'number' ? `${top}px` : top || 'auto';
+      dropdown.style.bottom = typeof bottom === 'string' ? bottom : (typeof bottom === 'number' ? `${bottom}px` : 'auto');
+      dropdown.style.left = `${left}px`;
+      dropdown.style.width = `${width}px`;
+    }
+    
+    // Reposition on window resize or scroll
+    let resizeTimer;
+    function handleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (dropdown.classList.contains('open')) {
+          positionDropdown();
+        }
+      }, 100);
+    }
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleResize, true);
+    
+    // Handle option selection
+    options.forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const value = option.getAttribute('data-value');
+        
+        // Check if already selected (prevent duplicates)
+        if (techStackState.selectedTechStacks.includes(value)) {
+          return; // Don't add duplicate
+        }
+        
+        // Add to selected
+        techStackState.selectedTechStacks.push(value);
+        updateTechStackValue();
+        
+        // Keep dropdown open for multiple selections
+        // Optionally close after selection: closeDropdown();
+      });
+    });
+    
+    // Handle badge removal
+    badgesContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('tech-stack-remove')) {
+        e.stopPropagation();
+        const techToRemove = e.target.getAttribute('data-tech');
+        techStackState.selectedTechStacks = techStackState.selectedTechStacks.filter(tech => tech !== techToRemove);
+        updateTechStackValue();
+      }
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+    
+    // Initialize
+    updateTechStackValue();
+  }
+
+  /* ===================== UPLOAD PROJECT ===================== */
+  async function uploadProject() {
+    const project = {
+      title: document.getElementById('projectTitle').value.trim(),
+      link: document.getElementById('projectLink').value.trim(),
+      description: document.getElementById('projectDesc').value.trim(),
+      tech: document.getElementById('projectTech').value.trim(),
+      owner: owner
+    };
+    if (!project.title || !project.link || !project.description || !project.tech) {
+      showToast("Please fill all fields!", 'error');
+      return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Uploading...';
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+    
+    try {
+      const response = await fetch('http://localhost:8080/projects/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(project)
+      });
+      if (!response.ok) throw new Error("Upload failed");
+      
+      showToast("Project uploaded successfully! 🎉", 'success');
+      
+      // Clear form
+      document.getElementById('projectTitle').value = '';
+      document.getElementById('projectLink').value = '';
+      document.getElementById('projectDesc').value = '';
+      // Clear tech stack selector
+      techStackState.reset();
+      
+      // Trigger upload box expansion animation
+      expandUploadBox();
+      
+      // Refresh lists and summary
+      fetchMyUploads();
+      fetchExploreProjects();
+      updateProjectSummary();
+    } catch (err) { 
+      console.error(err); 
+      showToast("Failed to upload project. Please try again.", 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+      btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    }
+  }
+
+  /* ===================== UPLOAD BOX AUTO-EXPAND ===================== */
+  function expandUploadBox() {
+    const uploadBox = document.getElementById('uploadBox');
+    if (uploadBox) {
+      uploadBox.classList.add('expanded');
+      setTimeout(() => {
+        uploadBox.classList.remove('expanded');
+      }, 1000);
+    }
+  }
+
+  /* ===================== FETCH MY UPLOADS ===================== */
+  let lastProjectCount = 0;
+  async function fetchMyUploads() {
+    try {
+      const response = await fetch(`http://localhost:8080/projects/user/${owner}`);
+      const projects = await response.json();
+      const myUploadsDiv = document.getElementById("myUploads");
+      const countElement = document.getElementById("myProjectsCount");
+      
+      // Update count
+      if (countElement) {
+        animateCounter(countElement, projects.length);
+      }
+      
+      myUploadsDiv.innerHTML = "";
+      
+      if (projects.length === 0) {
+        myUploadsDiv.innerHTML = `
+          <div class="empty-state">
+            <p class="text-secondary">No projects uploaded yet</p>
+            <p class="text-xs mt-2 text-muted">Upload your first project to get started!</p>
+          </div>
+        `;
+        lastProjectCount = 0;
+        return;
+      }
+      
+      // Check if new project was added
+      const isNewProject = projects.length > lastProjectCount;
+      lastProjectCount = projects.length;
+      
+      projects.forEach((p, index) => {
+        const card = document.createElement("div");
+        // Add special animation class for newly added project
+        if (isNewProject && index === projects.length - 1) {
+          card.className = "project-card-list project-card-new";
+        } else {
+          card.className = "project-card-list fade-in";
+          card.style.animationDelay = `${index * 0.05}s`;
+        }
+        
+        card.innerHTML = `
+          <div class="flex items-start justify-between mb-2">
+            <h3 class="font-semibold text-base text-primary flex-1">${escapeHtml(p.title)}</h3>
+          </div>
+          <p class="text-sm mb-3 line-clamp-2 text-secondary">${escapeHtml(p.description)}</p>
+          <div class="flex flex-wrap gap-2 mb-3">
+            ${p.tech.split(',').map(tech => `<span class="badge badge-info">${escapeHtml(tech.trim())}</span>`).join('')}
+          </div>
+          <a href="${escapeHtml(p.link)}" target="_blank" 
+             class="text-sm font-medium inline-flex items-center gap-1 link-primary transition-all hover:gap-2">
+            View on GitHub →
+          </a>
+        `;
+        myUploadsDiv.appendChild(card);
+      });
+     } catch (err) { 
+       console.error(err);
+       const myUploadsDiv = document.getElementById("myUploads");
+       myUploadsDiv.innerHTML = `<div class="text-center py-8 text-red">Failed to load projects</div>`;
+     }
+  }
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /* ===================== EXPLORE PROJECTS ===================== */
+  let allExploreProjects = []; // Store all projects for search/filter
+  let uniqueTechStacks = new Set(); // Store unique tech stacks for filter
+
+  async function fetchExploreProjects() {
+    try {
+      const requester = owner;
+      const response = await fetch(`http://localhost:8080/projects/all?requester=${requester}`);
+      allExploreProjects = await response.json();
+      
+      // Extract unique tech stacks for filter dropdown
+      uniqueTechStacks.clear();
+      allExploreProjects.forEach(p => {
+        if (p.tech) {
+          p.tech.split(',').forEach(tech => {
+            const trimmed = tech.trim();
+            if (trimmed) {
+              uniqueTechStacks.add(trimmed);
+            }
+          });
+        }
+      });
+      
+      // Populate tech stack filter dropdown
+      populateTechFilter();
+      
+      // Render projects (will be filtered by search/filter if active)
+      renderExploreProjects(allExploreProjects);
+    } catch (err) { 
+      console.error(err);
+      const exploreDiv = document.getElementById("exploreProjects");
+      exploreDiv.innerHTML = `<div class="text-center py-12 text-red col-span-full">Failed to load projects</div>`;
+    }
+  }
+
+  function populateTechFilter() {
+    const filterSelect = document.getElementById("filterTechStack");
+    const optionsContainer = document.getElementById("filterTechStackOptions");
+    const trigger = document.getElementById("filterTechStackTrigger");
+    const triggerText = trigger?.querySelector('.filter-select-text');
+    
+    if (!filterSelect || !optionsContainer || !triggerText) return;
+    
+    // Keep "All Tech Stacks" option, then add unique tech stacks
+    const currentValue = filterSelect.value;
+    optionsContainer.innerHTML = '<div class="filter-select-option" data-value="">All Tech Stacks</div>';
+    
+    // Sort tech stacks alphabetically
+    const sortedTechStacks = Array.from(uniqueTechStacks).sort();
+    sortedTechStacks.forEach(tech => {
+      const option = document.createElement('div');
+      option.className = 'filter-select-option';
+      option.setAttribute('data-value', tech);
+      option.textContent = tech;
+      optionsContainer.appendChild(option);
+    });
+    
+    // Restore previous selection if it still exists
+    if (currentValue && sortedTechStacks.includes(currentValue)) {
+      filterSelect.value = currentValue;
+      triggerText.textContent = currentValue;
+    } else if (!currentValue) {
+      filterSelect.value = '';
+      triggerText.textContent = 'All Tech Stacks';
+    }
+    
+    // Update dropdown handlers after populating options
+    if (filterDropdownInitialized) {
+      const trigger = document.getElementById("filterTechStackTrigger");
+      const triggerText = trigger?.querySelector('.filter-select-text');
+      const hiddenInput = document.getElementById("filterTechStack");
+      
+      // Update trigger text if value exists
+      if (hiddenInput && triggerText) {
+        const currentValue = hiddenInput.value;
+        if (currentValue) {
+          const selectedOption = Array.from(optionsContainer.children).find(
+            opt => opt.getAttribute('data-value') === currentValue
+          );
+          if (selectedOption) {
+            triggerText.textContent = selectedOption.textContent;
+          }
+        } else {
+          triggerText.textContent = 'All Tech Stacks';
+        }
+      }
+      
+      // Re-initialize to update option handlers
+      initializeFilterDropdown();
+    }
+  }
+
+  function renderExploreProjects(projects) {
+    const exploreDiv = document.getElementById("exploreProjects");
+    const countElement = document.getElementById("exploreProjectsCount");
+    
+    // Update project count
+    const count = projects.length;
+    if (countElement) {
+      countElement.textContent = `${count} ${count === 1 ? 'project' : 'projects'}`;
+    }
+    
+    exploreDiv.innerHTML = "";
+
+    if (projects.length === 0) {
+      exploreDiv.innerHTML = `
+        <div class="empty-state col-span-full">
+          <p class="text-secondary">No projects found</p>
+          <p class="text-xs mt-2 text-muted">Try adjusting your search or filter</p>
+        </div>
+      `;
+      return;
+    }
+
+    projects.forEach((p, index) => {
+      const card = document.createElement("div");
+      card.className = "card fade-in";
+      card.style.animationDelay = `${index * 0.05}s`;
+
+      // Determine button based on status with accent colors
+      let buttonHtml = "";
+      if (p.requestStatus === "pending") {
+        buttonHtml = `<button class="w-full btn-accent-amber" disabled>
+          Pending
+        </button>`;
+      } else if (p.requestStatus === "accepted") {
+        buttonHtml = `<button class="w-full btn-secondary">
+          Chat
+        </button>`;
+      } else { // none or rejected
+        buttonHtml = `<button id="requestBtn${p.id}" class="w-full btn-primary">
+          Request Collaboration
+        </button>`;
+      }
+
+      card.innerHTML = `
+        <h3 class="font-semibold text-base mb-2 text-primary">${escapeHtml(p.title)}</h3>
+        <p class="text-sm mb-3 line-clamp-3 text-secondary">${escapeHtml(p.description)}</p>
+        <div class="flex flex-wrap gap-2 mb-3">
+          ${p.tech.split(',').map(tech => `<span class="badge badge-info">${escapeHtml(tech.trim())}</span>`).join('')}
+        </div>
+        <div class="flex items-center gap-2 mb-3 text-sm text-secondary">
+          <span>${escapeHtml(p.owner)}</span>
+        </div>
+        <a href="${escapeHtml(p.link)}" target="_blank" 
+           class="text-sm font-medium mb-3 inline-block link-primary">
+          View Repository →
+        </a>
+        <div class="mt-3">${buttonHtml}</div>
+      `;
+      exploreDiv.appendChild(card);
+
+      // Attach click for request if none/rejected
+      if (p.requestStatus === "none" || p.requestStatus === "rejected") {
+        const btn = document.getElementById(`requestBtn${p.id}`);
+        if (btn) {
+          btn.addEventListener("click", async () => {
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            btn.disabled = true;
+            try {
+              await fetch("http://localhost:8080/projects/request", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ requester: owner, projectId: p.id })
+              });
+              showToast("Collaboration request sent! ✨", 'success');
+              fetchExploreProjects();
+              updateProjectSummary();
+            } catch (err) {
+              console.error(err);
+              btn.disabled = false;
+              btn.innerHTML = "Request Collaboration";
+              showToast("Failed to send request. Please try again.", 'error');
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /* ===================== FILTER DROPDOWN HANDLER ===================== */
+  let filterDropdownInitialized = false;
+  let filterDropdownElements = {};
+  
+  function initializeFilterDropdown() {
+    const trigger = document.getElementById('filterTechStackTrigger');
+    const dropdown = document.getElementById('filterTechStackDropdown');
+    const hiddenInput = document.getElementById('filterTechStack');
+    const triggerText = trigger?.querySelector('.filter-select-text');
+    const wrapper = trigger?.closest('.filter-select-wrapper');
+    
+    if (!trigger || !dropdown || !hiddenInput || !triggerText) return;
+    
+    // Store elements for reuse
+    filterDropdownElements = { trigger, dropdown, hiddenInput, triggerText, wrapper };
+    
+    function closeDropdown() {
+      dropdown.classList.remove('open');
+      wrapper?.classList.remove('dropdown-open');
+    }
+    
+    function openDropdown() {
+      dropdown.classList.add('open');
+      wrapper?.classList.add('dropdown-open');
+      positionFilterDropdown();
+    }
+    
+    function positionFilterDropdown() {
+      if (!trigger || !dropdown) return;
+      const triggerRect = trigger.getBoundingClientRect();
+      dropdown.style.top = `${triggerRect.bottom + 4}px`;
+      dropdown.style.left = `${triggerRect.left}px`;
+      dropdown.style.width = `${triggerRect.width}px`;
+    }
+    
+    // Set up option handlers
+    function updateFilterOptionHandlers() {
+      const options = document.querySelectorAll('#filterTechStackOptions .filter-select-option');
+      options.forEach(option => {
+        // Remove old listeners by cloning
+        const newOption = option.cloneNode(true);
+        option.parentNode.replaceChild(newOption, option);
+        
+        // Add new listener
+        newOption.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const value = newOption.getAttribute('data-value');
+          const text = newOption.textContent;
+          
+          hiddenInput.value = value;
+          triggerText.textContent = text;
+          closeDropdown();
+          
+          // Trigger filter
+          applySearchAndFilter();
+        });
+      });
+    }
+    
+    // Only set up trigger and document listeners once
+    if (!filterDropdownInitialized) {
+      filterDropdownInitialized = true;
+      
+      // Toggle dropdown
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = dropdown.classList.contains('open');
+        if (isOpen) {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
+      });
+      
+      // Close on outside click
+      document.addEventListener('click', (e) => {
+        if (wrapper && !wrapper.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      
+      // Reposition on resize/scroll
+      let resizeTimer;
+      function handleResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          if (dropdown.classList.contains('open')) {
+            positionFilterDropdown();
+          }
+        }, 100);
+      }
+      
+      window.addEventListener('resize', handleResize);
+      window.addEventListener('scroll', handleResize, true);
+    }
+    
+    // Always update option handlers (in case options changed)
+    updateFilterOptionHandlers();
+    
+  }
+
+  /* ===================== SEARCH AND FILTER FUNCTIONALITY ===================== */
+  function applySearchAndFilter() {
+    if (allExploreProjects.length === 0) return;
+    
+    const searchTerm = document.getElementById('searchProjects').value.toLowerCase().trim();
+    const filterTech = document.getElementById('filterTechStack').value.toLowerCase().trim();
+    
+    let filtered = allExploreProjects;
+    
+    // Apply search filter (title or description)
+    if (searchTerm) {
+      filtered = filtered.filter(p => {
+        const title = (p.title || '').toLowerCase();
+        const description = (p.description || '').toLowerCase();
+        return title.includes(searchTerm) || description.includes(searchTerm);
+      });
+    }
+    
+    // Apply tech stack filter
+    if (filterTech) {
+      filtered = filtered.filter(p => {
+        if (!p.tech) return false;
+        const techStacks = p.tech.split(',').map(t => t.trim().toLowerCase());
+        return techStacks.includes(filterTech);
+      });
+    }
+    
+    // Render filtered results
+    renderExploreProjects(filtered);
+  }
+
+  /* ===================== SETUP SEARCH AND FILTER LISTENERS ===================== */
+  function setupSearchAndFilterListeners() {
+    const searchInput = document.getElementById('searchProjects');
+    
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          applySearchAndFilter();
+        }, 300); // Debounce search
+      });
+    }
+    
+    // Filter dropdown is handled by initializeFilterDropdown
+    initializeFilterDropdown();
+  }
+
+  /* ===================== PROFILE REQUESTS ===================== */
+  async function fetchRequestsForOwner() {
+    try {
+      const response = await fetch(`http://localhost:8080/projects/requests/${owner}`);
+      const requests = await response.json();
+      const listDiv = document.getElementById("requestList");
+      listDiv.innerHTML = "";
+
+      if (!requests.length) {
+        listDiv.innerHTML = `
+          <div class="text-center py-6">
+            <p class="text-sm text-secondary">No collaboration requests yet</p>
+          </div>
+        `;
+        return;
+      }
+
+      requests.forEach((req, index) => {
+        const item = document.createElement("div");
+        item.className = "card fade-in";
+        item.style.animationDelay = `${index * 0.1}s`;
+        
+        // Status badge based on request status
+        let statusBadge = '';
+        if (req.status === 'pending') {
+          statusBadge = '<span class="badge-status-pending">Pending</span>';
+        } else if (req.status === 'accepted') {
+          statusBadge = '<span class="badge-status-accepted">Accepted</span>';
+        } else if (req.status === 'rejected') {
+          statusBadge = '<span class="badge-status-rejected">Rejected</span>';
+        }
+        
+        item.innerHTML = `
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-tertiary text-primary">
+                ${escapeHtml(req.requester.charAt(0).toUpperCase())}
+              </div>
+              <div>
+                <p class="font-medium text-sm text-primary">${escapeHtml(req.requester)}</p>
+                <p class="text-xs text-secondary">wants to collaborate</p>
+              </div>
+            </div>
+            ${statusBadge}
+          </div>
+          ${req.status === 'pending' ? `
+          <div class="flex gap-2">
+            <button id="acceptBtn${req.id}" class="flex-1 btn-primary">
+              Accept
+            </button>
+            <button id="rejectBtn${req.id}" class="flex-1 btn-secondary">
+              Reject
+            </button>
+          </div>
+          ` : ''}
+        `;
+        listDiv.appendChild(item);
+
+        // Attach accept/reject dynamically (only for pending requests)
+        if (req.status === 'pending') {
+          document.getElementById(`acceptBtn${req.id}`).addEventListener("click", async () => {
+          const btn = document.getElementById(`acceptBtn${req.id}`);
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          try {
+            await fetch(`http://localhost:8080/projects/requests/accept/${req.id}`, { method: "PUT" });
+            showToast("Request accepted! 🎉", 'success');
+            fetchRequestsForOwner();
+            fetchExploreProjects();
+            updateProjectSummary();
+          } catch (err) { 
+            console.error(err); 
+            showToast("Failed to accept request", 'error');
+            btn.disabled = false;
+            btn.textContent = 'Accept';
+          }
+        });
+        document.getElementById(`rejectBtn${req.id}`).addEventListener("click", async () => {
+          const btn = document.getElementById(`rejectBtn${req.id}`);
+          btn.disabled = true;
+          btn.textContent = 'Processing...';
+          try {
+            await fetch(`http://localhost:8080/projects/requests/reject/${req.id}`, { method: "PUT" });
+            showToast("Request rejected", 'info');
+            fetchRequestsForOwner();
+            fetchExploreProjects();
+            updateProjectSummary();
+          } catch (err) { 
+            console.error(err); 
+            showToast("Failed to reject request", 'error');
+            btn.disabled = false;
+             btn.textContent = 'Reject';
+           }
+         });
+        }
+       });
+     } catch (err) { 
+       console.error(err);
+       const listDiv = document.getElementById("requestList");
+       listDiv.innerHTML = `<div class="text-center py-8 text-red text-sm">Failed to load requests</div>`;
+     }
+  }
+
+  /* ===================== ANIMATED COUNTER ===================== */
+  // Store active timers to prevent overlapping animations
+  const activeTimers = new Map();
+  
+  function animateCounter(element, target) {
+    // Clear any existing timer for this element
+    if (activeTimers.has(element)) {
+      clearInterval(activeTimers.get(element));
+      activeTimers.delete(element);
+    }
+    
+    // Ensure target is a valid number
+    target = Math.max(0, parseInt(target) || 0);
+    
+    // Get current value - ensure it's a valid number
+    const currentText = element.textContent.trim();
+    const start = Math.max(0, parseInt(currentText) || 0);
+    
+    // If already at target, no need to animate
+    if (start === target) {
+      element.textContent = target;
+      return;
+    }
+    
+    const duration = 1000; // 1 second
+    const increment = target > start ? 1 : -1;
+    const steps = Math.abs(target - start);
+    const stepDuration = steps > 0 ? duration / steps : 0;
+    
+    // If stepDuration is too small or zero, just set the value directly
+    if (stepDuration < 10 || steps === 0) {
+      element.textContent = target;
+      return;
+    }
+    
+    let current = start;
+    const timer = setInterval(() => {
+      current += increment;
+      element.textContent = current;
+      
+      // Check if we've reached the target
+      if ((increment > 0 && current >= target) || (increment < 0 && current <= target)) {
+        element.textContent = target;
+        clearInterval(timer);
+        activeTimers.delete(element);
+      }
+    }, stepDuration);
+    
+    // Store the timer so we can clear it if needed
+    activeTimers.set(element, timer);
+  }
+
+  /* ===================== UPDATE PROJECT SUMMARY ===================== */
+  async function updateProjectSummary() {
+    try {
+      // Get total projects
+      const projectsResponse = await fetch(`http://localhost:8080/projects/user/${owner}`);
+      if (!projectsResponse.ok) throw new Error("Failed to fetch projects");
+      const projects = await projectsResponse.json();
+      const totalProjects = Array.isArray(projects) ? projects.length : 0;
+      animateCounter(document.getElementById('totalProjectsCount'), totalProjects);
+      
+      // Get requests - these are requests WHERE THE USER IS THE OWNER (incoming requests)
+      const requestsResponse = await fetch(`http://localhost:8080/projects/requests/${owner}`);
+      if (!requestsResponse.ok) throw new Error("Failed to fetch requests");
+      const requests = await requestsResponse.json();
+      
+      // Ensure requests is an array
+      const requestsArray = Array.isArray(requests) ? requests : [];
+      
+      // Count by status - ensure status is a string and compare correctly
+      const acceptedCount = requestsArray.filter(r => r && r.status && String(r.status).toLowerCase() === 'accepted').length;
+      const pendingCount = requestsArray.filter(r => r && r.status && String(r.status).toLowerCase() === 'pending').length;
+      
+      // Update counters with validated counts
+      animateCounter(document.getElementById('acceptedRequestsCount'), acceptedCount);
+      animateCounter(document.getElementById('pendingRequestsCount'), pendingCount);
+    } catch (err) {
+      console.error("Failed to update project summary", err);
+      // Set counters to 0 on error to prevent showing incorrect values
+      const totalCountEl = document.getElementById('totalProjectsCount');
+      const acceptedCountEl = document.getElementById('acceptedRequestsCount');
+      const pendingCountEl = document.getElementById('pendingRequestsCount');
+      if (totalCountEl) totalCountEl.textContent = '0';
+      if (acceptedCountEl) acceptedCountEl.textContent = '0';
+      if (pendingCountEl) pendingCountEl.textContent = '0';
+    }
+  }
+
+  // Load initial data
+  window.onload = () => {
+    initializeTechStackSelector();
+    fetchMyUploads();
+    fetchExploreProjects();
+    updateProjectSummary();
+    setupSearchAndFilterListeners();
+  };
+</script>
+
+</body>
+</html>
+
