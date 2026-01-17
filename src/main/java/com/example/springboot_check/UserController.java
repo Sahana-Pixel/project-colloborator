@@ -77,9 +77,9 @@ public class UserController {
     }
 
     // Home page mapping
-    @GetMapping("/")
+     @GetMapping("/")
     public String home() {
-        return "home";
+        return "Spring Boot app is running 🚀";
     }
 
     // Logout user and show simple text message
