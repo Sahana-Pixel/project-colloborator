@@ -1,13 +1,12 @@
-# Use official OpenJDK 21 image
-FROM eclipse-temurin:21-jdk-alpine
+# Use official OpenJDK 17 image
+FROM openjdk:17-jdk-alpine
 
-# Set working directory inside container
+# Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml first (for caching dependencies)
-COPY mvnw .
+# Copy Maven wrapper and pom files first
+COPY mvnw pom.xml ./
 COPY .mvn .mvn
-COPY pom.xml .
 
 # Copy source code
 COPY src ./src
@@ -15,8 +14,11 @@ COPY src ./src
 # Make Maven wrapper executable
 RUN chmod +x mvnw
 
-# Build the app
+# Build the project
 RUN ./mvnw clean package -DskipTests
 
-# Run the Spring Boot app
-CMD ["java", "-jar", "target/springboot-check-0.0.1-SNAPSHOT.jar"]
+# Expose the port (Render uses $PORT)
+EXPOSE 10000
+
+# Run the JAR
+ENTRYPOINT ["java","-jar","target/springboot-check-0.0.1-SNAPSHOT.jar"]
