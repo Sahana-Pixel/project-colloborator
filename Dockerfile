@@ -1,5 +1,5 @@
 # Use official OpenJDK 17 image
-FROM eclipse-temurin:17-jdk-focal
+FROM eclipse-temurin:21-jdk-focal
 
 
 # Set working directory
