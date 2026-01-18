@@ -493,7 +493,7 @@
     btn.classList.add('opacity-75', 'cursor-not-allowed');
     
     try {
-      const response = await fetch('http://localhost:8080/projects/upload', {
+      const response = await fetch('/projects/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(project)
@@ -541,7 +541,7 @@
   let lastProjectCount = 0;
   async function fetchMyUploads() {
     try {
-      const response = await fetch(`http://localhost:8080/projects/user/${owner}`);
+      const response = await fetch(`/projects/user/${owner}`);
       const projects = await response.json();
       const myUploadsDiv = document.getElementById("myUploads");
       const countElement = document.getElementById("myProjectsCount");
@@ -613,7 +613,7 @@
   async function fetchExploreProjects() {
     try {
       const requester = owner;
-      const response = await fetch(`http://localhost:8080/projects/all?requester=${requester}`);
+      const response = await fetch(`/projects/all?requester=${requester}`);
       allExploreProjects = await response.json();
       
       // Extract unique tech stacks for filter dropdown
@@ -767,7 +767,7 @@
             btn.textContent = 'Sending...';
             btn.disabled = true;
             try {
-              await fetch("http://localhost:8080/projects/request", {
+              await fetch("/projects/request", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ requester: owner, projectId: p.id })
@@ -940,7 +940,7 @@
   /* ===================== PROFILE REQUESTS ===================== */
   async function fetchRequestsForOwner() {
     try {
-      const response = await fetch(`http://localhost:8080/projects/requests/${owner}`);
+      const response = await fetch(`/projects/requests/${owner}`);
       const requests = await response.json();
       const listDiv = document.getElementById("requestList");
       listDiv.innerHTML = "";
@@ -1002,7 +1002,7 @@
           btn.disabled = true;
           btn.textContent = 'Processing...';
           try {
-            await fetch(`http://localhost:8080/projects/requests/accept/${req.id}`, { method: "PUT" });
+            await fetch(`/projects/requests/accept/${req.id}`, { method: "PUT" });
             showToast("Request accepted! 🎉", 'success');
             fetchRequestsForOwner();
             fetchExploreProjects();
@@ -1019,7 +1019,7 @@
           btn.disabled = true;
           btn.textContent = 'Processing...';
           try {
-            await fetch(`http://localhost:8080/projects/requests/reject/${req.id}`, { method: "PUT" });
+            await fetch(`/projects/requests/reject/${req.id}`, { method: "PUT" });
             showToast("Request rejected", 'info');
             fetchRequestsForOwner();
             fetchExploreProjects();
@@ -1096,14 +1096,14 @@
   async function updateProjectSummary() {
     try {
       // Get total projects
-      const projectsResponse = await fetch(`http://localhost:8080/projects/user/${owner}`);
+      const projectsResponse = await fetch(`/projects/user/${owner}`);
       if (!projectsResponse.ok) throw new Error("Failed to fetch projects");
       const projects = await projectsResponse.json();
       const totalProjects = Array.isArray(projects) ? projects.length : 0;
       animateCounter(document.getElementById('totalProjectsCount'), totalProjects);
       
       // Get requests - these are requests WHERE THE USER IS THE OWNER (incoming requests)
-      const requestsResponse = await fetch(`http://localhost:8080/projects/requests/${owner}`);
+      const requestsResponse = await fetch(`/projects/requests/${owner}`);
       if (!requestsResponse.ok) throw new Error("Failed to fetch requests");
       const requests = await requestsResponse.json();
       
